@@ -34,7 +34,7 @@
         <div class="field">
             <label class="label" for="userName">氏名</label>
             <div class="control has-icons-left">
-                <input class="input" type="text" id="userName" name="user_name" placeholder="Name"/>
+                <input class="input" type="text" id="userName" name="user_name" placeholder="阪大太郎"/>
                 <span class="icon is-small is-left"><i class="fas fa-user"></i></span>
             </div>
             <p class="help is-info">苗字と名前の間の空白は不要</p>
@@ -99,7 +99,7 @@
           </div>
         </div>
 
-
+        <div class="help is-danger" id="err_category"></div>
 
         <div class="field">
           <div class="control has-text-right">
@@ -137,8 +137,8 @@
     //登録ボタンクリック時処理
     $('#submitButton').on('click', function () {
         $('.regist-loading-wrapper').show();
-        const req = {};
         const params = {};
+        // params['date'] = new Date();
         $('#manageForm').find('input').each(function (index, element) {
           const key = $(element).attr('name');
           let val = '';
@@ -163,11 +163,28 @@
           const val = $(element).val();
           params[key] = val;
         });
-        req.parameters = params;
-        // google.script.run.withSuccessHandler(doSubmitSuccess).doSubmitAjax(req);
-        console.log(req)
+        params['user_name'] = params['user_name'].replace(/\s+/g, "");;
+        console.log(params)
+        // エラーチェック
+        let isError = false;
+        if(params['user_name'] == ''){
+          console.log("名前を入力してください");
+          document.querySelector('input[name=user_name]').classList.add('is-danger');
+
+          isError = true;
+        }
+        if(params['answer05'] == '1' && params['answer05_name'] == ''){
+          console.log("症状を入力してください");
+          document.querySelector('input[name=answer05_name]').classList.add('is-danger');
+          isError = true;
+        }
         // 登録完了モーダル表示
-        $('#confirmModal').show();
+        if(!isError){
+          sendJson(params)
+        }else{
+          $("#err_category").empty();
+          $("#err_category").append("<p><i class=\"fa fa-exclamation-triangle\"></i>未入力の項目があります。</p>");
+        }
     });
 
     $('input[type=radio][name=answer05]').on( 'change' ,function (){
@@ -184,14 +201,36 @@
   
   $('#confirmModal .cancel').on('click', function () {
     $('#confirmedModal').hide();
-    // window.open("https://script.google.com/macros/s/AKfycbx8Fo2WZ-zmbeWTkuYoD5AorLmbHMLSkOX6I6f0p-z4pBdJ6HjT_KDEgl2BTUlbWgaQeQ/exec", '_top');
     window.location.reload();
   });
 
+
+    const sendJson = async (p) => {
+      var URL = "https://script.google.com/macros/s/AKfycbzWvp7vnVpwzeQlH83aMAoJjoh7BQZBkkztlnXY_HIhYcDL_zV4SOGEuV028GV6Zt9U/exec";
+      var postparam = 
+         {
+           "method"     : "POST",
+           "mode"       : "no-cors",
+           "Content-Type" : "application/x-www-form-urlencoded",
+           "body" : JSON.stringify(p)
+         };
+      // 非同期処理
+      await fetch(URL, postparam) 
+      .then((response) => {
+        // 非同期処理が成功した場合
+        console.log('成功 : ' + response)
+        $('#confirmModal').show();
+      })
+      .catch((error) => {
+        // 非同期処理が失敗した場合
+        console.log('失敗 : ' + error)
+      })
+    }
+
 </script>
 
-
-
+<!-- 入力内容エラー時のやり直し促し用モーダル -->
+<!-- fetchAPIエラー時のやり直し促し用モーダル -->
 
 
 <style>
@@ -255,7 +294,6 @@
     #temperature {
       width: 85%;
     }
-
 
     /*レスポンシブ（スマホ）*/
     @media screen and (max-width: 480px) {
