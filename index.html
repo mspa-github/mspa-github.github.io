@@ -28,7 +28,7 @@
     <div id="registerContent" class="conteiner form-body">
       <form id="manageForm" action="<?= getAppUrl() ?>" method="post">
         
-        <p class="form-body">下記のフォームに従って入力してください。</p> 
+        <!-- <p class="form-body">下記のフォームに従って入力してください。</p>  -->
 
 
         <div class="field">
@@ -136,55 +136,57 @@
   $(function () { 
     //登録ボタンクリック時処理
     $('#submitButton').on('click', function () {
-        $('.regist-loading-wrapper').show();
-        const params = {};
-        // params['date'] = new Date();
-        $('#manageForm').find('input').each(function (index, element) {
-          const key = $(element).attr('name');
-          let val = '';
-          if($(element).attr('type') == 'radio'){
-            if($(element).is(':checked')){
-              val = $(element).val();
-            }else{
-              return;
-            }
-          }else{
+      $('#submitButton').addClass('is-loading');
+      $('.regist-loading-wrapper').show();
+      const params = {};
+      // params['date'] = new Date();
+      $('#manageForm').find('input').each(function (index, element) {
+        const key = $(element).attr('name');
+        let val = '';
+        if($(element).attr('type') == 'radio'){
+          if($(element).is(':checked')){
             val = $(element).val();
+          }else{
+            return;
           }
-            params[key] = val;
-        });
-        $('#manageForm').find('select').each(function (index, element) {
-          const key = $(element).attr('name');
-          const val = $(element).val();
-          params[key] = val;
-        });
-        $('#manageForm').find('textarea').each(function (index, element) {
-          const key = $(element).attr('name');
-          const val = $(element).val();
-          params[key] = val;
-        });
-        params['user_name'] = params['user_name'].replace(/\s+/g, "");;
-        console.log(params)
-        // エラーチェック
-        let isError = false;
-        if(params['user_name'] == ''){
-          console.log("名前を入力してください");
-          document.querySelector('input[name=user_name]').classList.add('is-danger');
-
-          isError = true;
-        }
-        if(params['answer05'] == '1' && params['answer05_name'] == ''){
-          console.log("症状を入力してください");
-          document.querySelector('input[name=answer05_name]').classList.add('is-danger');
-          isError = true;
-        }
-        // 登録完了モーダル表示
-        if(!isError){
-          sendJson(params)
         }else{
-          $("#err_category").empty();
-          $("#err_category").append("<p><i class=\"fa fa-exclamation-triangle\"></i>未入力の項目があります。</p>");
+          val = $(element).val();
         }
+          params[key] = val;
+      });
+      $('#manageForm').find('select').each(function (index, element) {
+        const key = $(element).attr('name');
+        const val = $(element).val();
+        params[key] = val;
+      });
+      $('#manageForm').find('textarea').each(function (index, element) {
+        const key = $(element).attr('name');
+        const val = $(element).val();
+        params[key] = val;
+      });
+      params['user_name'] = params['user_name'].replace(/\s+/g, "");;
+      console.log(params)
+      // エラーチェック
+      let isError = false;
+      if(params['user_name'] == ''){
+        console.log("名前を入力してください");
+        document.querySelector('input[name=user_name]').classList.add('is-danger');
+
+        isError = true;
+      }
+      if(params['answer05'] == '1' && params['answer05_name'] == ''){
+        console.log("症状を入力してください");
+        document.querySelector('input[name=answer05_name]').classList.add('is-danger');
+        isError = true;
+      }
+      // 登録完了モーダル表示
+      if(!isError){
+        sendJson(params)
+      }else{
+        $("#err_category").empty();
+        $("#err_category").append("<p><i class=\"fa fa-exclamation-triangle\"></i>未入力の項目があります。</p>");
+        $('#submitButton').removeClass('is-loading');
+      }
     });
 
     $('input[type=radio][name=answer05]').on( 'change' ,function (){
@@ -218,11 +220,15 @@
       await fetch(URL, postparam) 
       .then((response) => {
         // 非同期処理が成功した場合
+        $('#submitButton').removeClass('is-loading');
         console.log('成功 : ' + response)
         $('#confirmModal').show();
       })
       .catch((error) => {
         // 非同期処理が失敗した場合
+        $("#err_category").empty();
+        $("#err_category").append("<p><i class=\"fa fa-exclamation-triangle\"></i>送信エラー：ページを更新して最初からやり直してください。何度も発生する場合は管理者にお問合せください。</p>");
+        $('#submitButton').removeClass('is-loading');
         console.log('失敗 : ' + error)
       })
     }
